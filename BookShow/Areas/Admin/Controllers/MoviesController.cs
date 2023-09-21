@@ -1,19 +1,21 @@
 ﻿using Book.DataAccess.Data;
+using Book.DataAccess.Repository.IRepository;
 using Book.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BookShow.Controllers
+namespace BookShow.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class MoviesController : Controller
     {
-        private readonly ApplicationDbContext _db
-;        public MoviesController( ApplicationDbContext db)
+        private readonly IUnitOfWork _unitOfWork;
+        public MoviesController(IUnitOfWork unitOfWork)
         {
-            _db = db;
+            _unitOfWork = unitOfWork;
         }
         public IActionResult Index()
         {
-            List<Movies>  objMovieCategoryList = _db.Movies.ToList();
+            List<Movies> objMovieCategoryList = _unitOfWork.Movies.GetAll().ToList();
             return View(objMovieCategoryList);
         }
 
@@ -22,7 +24,7 @@ namespace BookShow.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult Create(Movies obj) 
+        public IActionResult Create(Movies obj)
         {
             if (obj.Name == obj.DisplayOrder.ToString())
             {
@@ -30,8 +32,8 @@ namespace BookShow.Controllers
             }
             if (ModelState.IsValid)
             {
-                _db.Movies.Add(obj);
-                _db.SaveChanges();
+                _unitOfWork.Movies.Add(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "Movie Category Created Successfully";
 
                 return RedirectToAction("Index");
@@ -40,15 +42,15 @@ namespace BookShow.Controllers
             return View();
         }
 
-        public IActionResult Edit( int? id)
+        public IActionResult Edit(int? id)
         {
-            if(id==null || id==0)
+            if (id == null || id == 0)
             {
                 return NotFound();
             }
-            Movies? movieCatFromDb = _db.Movies.Find(id);
-           // Movies movieCatFromDb1 = _db.Movies.FirstOrDefault(u=>u.Id==id);
-            if(movieCatFromDb==null)
+            Movies? movieCatFromDb = _unitOfWork.Movies.Get(u => u.Id == id);
+            // Movies movieCatFromDb1 = _db.Movies.FirstOrDefault(u=>u.Id==id);
+            if (movieCatFromDb == null)
             {
                 return NotFound();
             }
@@ -57,11 +59,11 @@ namespace BookShow.Controllers
         [HttpPost]
         public IActionResult Edit(Movies obj)
         {
-            
+
             if (ModelState.IsValid)
             {
-                _db.Movies.Update(obj);
-                _db.SaveChanges();
+                _unitOfWork.Movies.Update(obj);
+                _unitOfWork.Save();
                 TempData["success"] = "Movie Category Edited Successfully";
                 return RedirectToAction("Index");
 
@@ -75,7 +77,7 @@ namespace BookShow.Controllers
             {
                 return NotFound();
             }
-            Movies? movieCatFromDb = _db.Movies.Find(id);
+            Movies? movieCatFromDb = _unitOfWork.Movies.Get(u => u.Id == id);
             // Movies movieCatFromDb1 = _db.Movies.FirstOrDefault(u=>u.Id==id);
             if (movieCatFromDb == null)
             {
@@ -83,19 +85,19 @@ namespace BookShow.Controllers
             }
             return View(movieCatFromDb);
         }
-        [HttpPost,ActionName("Delete")]
+        [HttpPost, ActionName("Delete")]
         public IActionResult DeletePOST(int? id)
         {
-            Movies? obj = _db.Movies.Find(id); 
-            if (obj==null)
+            Movies? obj = _unitOfWork.Movies.Get(u => u.Id == id);
+            if (obj == null)
             {
                 return NotFound();
             }
-            _db.Movies.Remove(obj);
-            _db.SaveChanges();
+            _unitOfWork.Movies.Remove(obj);
+            _unitOfWork.Save();
             TempData["success"] = "Movie Category Deleted Successfully";
             return RedirectToAction("Index");
-            
+
         }
     }
 }
