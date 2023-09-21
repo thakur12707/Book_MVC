@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace BookShow.Migrations
+namespace Book.DataAccess.Migrations
 {
     /// <inheritdoc />
     public partial class AddMoviesCatTableToDb : Migration
